@@ -18,7 +18,7 @@ oktapost.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 oktapost.use(bodyParser.json());
 
-//method to create user in Okta and send activation email
+
 oktapost.post("/createUser",function (req, res) {
     console.log(req.body);
     var url=config.url;
@@ -33,17 +33,18 @@ oktapost.post("/createUser",function (req, res) {
         email = req.body['email'],
         login = req.body['email'],
         city = req.body['city'],
-        sex = req.body['sex'],
-        dod_id = req.body['dod_id'],
+        sex = req.body['gender'],
+        dod_id = req.body['doid'],
         accountType = req.body['accountType'],
-        DoB = req.body['DoB'],
-        LicenseNumber = req.body['LicenseNumber'],
+        DoB = req.body['dob'],
+        LicenseNumber = req.body['LicenseNo'],
         LicenseState = req.body['LicenseState'],
-        primaryPhone = req.body['primaryPhone'],
-        user_state = req.body['user_state'],
-        user_type = req.body['user_type'],
-        streetAddress = req.body['streetAddress'],
-        ProviderType = req.body['ProviderType']
+        primaryPhone = req.body['phnNo'],
+        state = req.body['state'],
+        zipCode = req.body['zip'],
+        postalAddress = req.body['address'],
+        ProviderType = req.body['type'],
+        MRN = req.body['mrn']
     const newUser = {
         profile: {
             firstName: firstName,
@@ -54,26 +55,26 @@ oktapost.post("/createUser",function (req, res) {
             sex: sex,
             dod_id: dod_id,
             accountType: accountType,
-            DoB: login,
+            DoB: DoB,
             LicenseNumber: LicenseNumber,
             LicenseState: LicenseState,
             primaryPhone: primaryPhone,
-            user_state: user_state,
-            user_type: user_type,
-            streetAddress: streetAddress,
+            state: state,
+            zipCode: zipCode,
+            postalAddress: postalAddress,
             ProviderType: ProviderType,
+            MRN: MRN
         }
     }
     console.log(newUser);
     client.createUser(newUser)
-    .then(user => res.send(true))
+    .then(user => res.send(user))
         .catch(err =>{
 		console.log(err);
         res.send(false)}
     );
     })
 
-//method to check if email exisits in Okta
     oktapost.get("/checkUser",function (req, res) {
         email= req.query.email;
         console.log(email);
@@ -94,7 +95,7 @@ oktapost.post("/createUser",function (req, res) {
         });
         
 
-//method to create Unique MRN for user
+
 oktapost.get("/createMRN",function (req, res) {
     var url=config.url;
     var apikey=config.token;
@@ -104,37 +105,50 @@ oktapost.get("/createMRN",function (req, res) {
             token: apikey
         });
         var val ="";
+        var searchquery = "";
+        var status = "";
+        var MRN = "";
         generateNum();
         function generateNum(){
              val = Math.floor(10000 + Math.random() * 90000);
-        }
-        var MRN = "";
-        var status="check";
+        
+        status="check";
         var NETCCN = "NETCCN";
-        var MRN = NETCCN+val;
-        var query = "profile.MRN eq "
-       var searchquery = query +"\""+ MRN +"\""
+        MRN = NETCCN+val;
+        var query = "profile.MRN eq ";
+        searchquery = query +"\""+ MRN +"\""
+       // searchquery = query +"\""+"NETCCN00001"+"\""
+        }
+        console.log(searchquery)
+        listusers()
         //var searchquery = query +"\""+"NETCCN00001"+"\""
-         client.listUsers({
-            search: searchquery
-          })
-          .each(user =>{
-              status="new";
-             // console.log(status)
-            //console.log(user['id'])
-            generateNum();     
+        function listusers(){
+            console.log("enters function block")
+            client.listUsers({
+                search: searchquery
+              })
+              .each(user =>{
+                  status="new";
+                 console.log(status)
+                console.log(user['id'])
+                generateNum();
+                listusers();
                 
-          })
+    
+                    
+              })
+             
+              
+              .then(test=>{console.log(status);
+              if(status=="check"){
+                res.send(MRN) 
+              }
+              else{
+                  console.log("false")
+              }
+            });
+        }
          
-          
-          .then(test=>{console.log(status);
-          if(status=="check"){
-            res.send(MRN) 
-          }
-          else{
-              console.log("false")
-          }
-        });
          
         })
 
