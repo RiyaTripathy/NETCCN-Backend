@@ -18,7 +18,7 @@ oktapost.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 oktapost.use(bodyParser.json());
 
-
+//method to create user in Okta and send activation email
 oktapost.post("/createUser",function (req, res) {
     console.log(req.body);
     var url=config.url;
@@ -73,6 +73,7 @@ oktapost.post("/createUser",function (req, res) {
     );
     })
 
+//method to check if email exisits in Okta
     oktapost.get("/checkUser",function (req, res) {
         email= req.query.email;
         console.log(email);
@@ -93,7 +94,7 @@ oktapost.post("/createUser",function (req, res) {
         });
         
 
-
+//method to create Unique MRN for user
 oktapost.get("/createMRN",function (req, res) {
     var url=config.url;
     var apikey=config.token;
