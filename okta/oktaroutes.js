@@ -28,8 +28,6 @@ oktapost.post("/createUser",function (req, res) {
             orgUrl: url,
             token: apikey
         });
-        //var data = req.body['profile'];
-        //var credentials = req.body['credentials'];
         firstName = req.body['firstName'],
         lastName = req.body['lastName'],
         email = req.body['email'],
@@ -45,8 +43,7 @@ oktapost.post("/createUser",function (req, res) {
         user_state = req.body['user_state'],
         user_type = req.body['user_type'],
         streetAddress = req.body['streetAddress'],
-        ProviderType = req.body['ProviderType'],
-        password = req.body['password']
+        ProviderType = req.body['ProviderType']
     const newUser = {
         profile: {
             firstName: firstName,
@@ -65,38 +62,39 @@ oktapost.post("/createUser",function (req, res) {
             user_type: user_type,
             streetAddress: streetAddress,
             ProviderType: ProviderType,
-        },
-        credentials: 
-        { 
-            password :
-            {
-                value : password
-            }
         }
     }
     console.log(newUser);
-    client.createUser(newUser, {
-        activate: false
-      })
-    .then(user => 
-        {
-            var userid=user['id'];
-            client.activateUser(userid, {
-                sendEmail: true
-              })
-              .then(user1 =>res.send(true) )
-
-    })
+    client.createUser(newUser)
+    .then(user => res.send(true))
         .catch(err =>{
 		console.log(err);
-        res.send(false)
-        
-        });
+        res.send(false)}
+    );
     })
+
+    oktapost.get("/checkUser",function (req, res) {
+        email= req.query.email;
+        console.log(email);
+        var url=config.url;
+            var apikey=config.token;
+            const okta = require('@okta/okta-sdk-nodejs');
+                const client = new okta.Client({
+                    orgUrl: url,
+                    token: apikey
+            });
+              client.getUser(email)
+                .then(user => {res.send(true)}
+                )
+                .catch(err => {
+                    console.log(err);
+                    res.send(false)
+                });
+        });
+        
 
 
 oktapost.get("/createMRN",function (req, res) {
-    console.log(req.body);
     var url=config.url;
     var apikey=config.token;
     const okta = require('@okta/okta-sdk-nodejs');
