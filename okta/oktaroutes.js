@@ -10,7 +10,7 @@ const { Console } = require("console");
 const { query } = require("express");
 const { SERVFAIL } = require("dns");
 var filename = ""
-
+var MRN_GEN = "";
 
 // parse application/x-www-form-urlencoded
 oktapost.use(bodyParser.urlencoded({ extended: false }));
@@ -44,7 +44,8 @@ oktapost.post("/createUser",function (req, res) {
         zipCode = req.body['zip'],
         postalAddress = req.body['address'],
         ProviderType = req.body['type'],
-        MRN = req.body['mrn']
+        user_type = req.body['user_type'],
+        MRN = MRN_GEN
     const newUser = {
         profile: {
             firstName: firstName,
@@ -63,6 +64,7 @@ oktapost.post("/createUser",function (req, res) {
             zipCode: zipCode,
             postalAddress: postalAddress,
             ProviderType: ProviderType,
+            user_type:user_type,
             MRN: MRN
         }
     }
@@ -75,24 +77,24 @@ oktapost.post("/createUser",function (req, res) {
     );
     })
 
-    oktapost.get("/checkUser",function (req, res) {
-        email= req.query.email;
-        console.log(email);
-        var url=config.url;
-            var apikey=config.token;
-            const okta = require('@okta/okta-sdk-nodejs');
-                const client = new okta.Client({
-                    orgUrl: url,
-                    token: apikey
-            });
-              client.getUser(email)
-                .then(user => {res.send(true)}
-                )
-                .catch(err => {
-                    console.log(err);
-                    res.send(false)
-                });
+oktapost.get("/checkUser",function (req, res) {
+    email= req.query.email;
+    console.log(email);
+    var url=config.url;
+        var apikey=config.token;
+        const okta = require('@okta/okta-sdk-nodejs');
+            const client = new okta.Client({
+                orgUrl: url,
+                token: apikey
         });
+            client.getUser(email)
+            .then(user => {res.send(true)}
+            )
+            .catch(err => {
+                console.log(err);
+                res.send(false)
+            });
+    });
         
 
 
@@ -107,16 +109,16 @@ oktapost.get("/createMRN",function (req, res) {
         var val ="";
         var searchquery = "";
         var status = "";
-        var MRN = "";
+        
         generateNum();
         function generateNum(){
              val = Math.floor(10000 + Math.random() * 90000);
         
         status="check";
         var NETCCN = "NETCCN";
-        MRN = NETCCN+val;
+        MRN_GEN = NETCCN+val;
         var query = "profile.MRN eq ";
-        searchquery = query +"\""+ MRN +"\""
+        searchquery = query +"\""+ MRN_GEN +"\""
        // searchquery = query +"\""+"NETCCN00001"+"\""
         }
         console.log(searchquery)
@@ -141,7 +143,7 @@ oktapost.get("/createMRN",function (req, res) {
               
               .then(test=>{console.log(status);
               if(status=="check"){
-                res.send(MRN) 
+                res.send(MRN_GEN) 
               }
               else{
                   console.log("false")
