@@ -10,7 +10,7 @@ const { Console } = require("console");
 const { query } = require("express");
 const { SERVFAIL } = require("dns");
 var filename = ""
-var MRN_GEN = "";
+
 
 // parse application/x-www-form-urlencoded
 oktapost.use(bodyParser.urlencoded({ extended: false }));
@@ -19,7 +19,10 @@ oktapost.use(bodyParser.urlencoded({ extended: false }));
 oktapost.use(bodyParser.json());
 
 
-oktapost.post("/createUser",function (req, res) {
+oktapost.post("/createUser",async function (req, res) {
+   // var mrnnum = ""
+    var MRN = await generateMRN()
+    console.log(MRN)
     console.log(req.body);
     var url=config.url;
     var apikey=config.token;
@@ -28,6 +31,7 @@ oktapost.post("/createUser",function (req, res) {
             orgUrl: url,
             token: apikey
         });
+        //var data = req.body['profile'];
         firstName = req.body['firstName'],
         lastName = req.body['lastName'],
         email = req.body['email'],
@@ -43,9 +47,9 @@ oktapost.post("/createUser",function (req, res) {
         state = req.body['state'],
         zipCode = req.body['zip'],
         postalAddress = req.body['address'],
-        ProviderType = req.body['type'],
-        user_type = req.body['user_type'],
-        MRN = MRN_GEN
+        ProviderType = req.body['type']
+        //console.log(MRN)
+        //MRN = req.body['mrn']
     const newUser = {
         profile: {
             firstName: firstName,
@@ -64,7 +68,6 @@ oktapost.post("/createUser",function (req, res) {
             zipCode: zipCode,
             postalAddress: postalAddress,
             ProviderType: ProviderType,
-            user_type:user_type,
             MRN: MRN
         }
     }
@@ -75,83 +78,101 @@ oktapost.post("/createUser",function (req, res) {
 		console.log(err);
         res.send(false)}
     );
+   
     })
 
-oktapost.get("/checkUser",function (req, res) {
-    email= req.query.email;
-    console.log(email);
-    var url=config.url;
-        var apikey=config.token;
-        const okta = require('@okta/okta-sdk-nodejs');
-            const client = new okta.Client({
-                orgUrl: url,
-                token: apikey
-        });
-            client.getUser(email)
-            .then(user => {res.send(true)}
-            )
-            .catch(err => {
-                console.log(err);
-                res.send(false)
+    oktapost.get("/checkUser",function (req, res) {
+        email= req.query.email;
+        console.log(email);
+        var url=config.url;
+            var apikey=config.token;
+            const okta = require('@okta/okta-sdk-nodejs');
+                const client = new okta.Client({
+                    orgUrl: url,
+                    token: apikey
             });
-    });
+              client.getUser(email)
+                .then(user => {res.send(true)}
+                )
+                .catch(err => {
+                    console.log(err);
+                    res.send(false)
+                });
+        });
         
 
 
-oktapost.get("/createMRN",function (req, res) {
-    var url=config.url;
-    var apikey=config.token;
-    const okta = require('@okta/okta-sdk-nodejs');
-        const client = new okta.Client({
-            orgUrl: url,
-            token: apikey
-        });
-        var val ="";
-        var searchquery = "";
-        var status = "";
-        
-        generateNum();
-        function generateNum(){
-             val = Math.floor(10000 + Math.random() * 90000);
-        
-        status="check";
-        var NETCCN = "NETCCN";
-        MRN_GEN = NETCCN+val;
-        var query = "profile.MRN eq ";
-        searchquery = query +"\""+ MRN_GEN +"\""
-       // searchquery = query +"\""+"NETCCN00001"+"\""
-        }
-        console.log(searchquery)
-        listusers()
-        //var searchquery = query +"\""+"NETCCN00001"+"\""
-        function listusers(){
-            console.log("enters function block")
-            client.listUsers({
-                search: searchquery
-              })
-              .each(user =>{
-                  status="new";
-                 console.log(status)
-                console.log(user['id'])
-                generateNum();
-                listusers();
-                
-    
-                    
-              })
-             
-              
-              .then(test=>{console.log(status);
-              if(status=="check"){
-                res.send(MRN_GEN) 
-              }
-              else{
-                  console.log("false")
-              }
-            });
-        }
-         
+oktapost.get("/createMRN",async function (req, res) {
+    var MRN = await generateMRN()
+    res.send(MRN)
          
         })
+
+        async function generateMRN()
+        {
+            var url=config.url;
+            var apikey=config.token;
+            const okta = require('@okta/okta-sdk-nodejs');
+                const client = new okta.Client({
+                    orgUrl: url,
+                    token: apikey
+                });
+                var val ="";
+                var searchquery = "";
+                var status = "";
+                var MRN = "";
+                var mrn = "";
+                var nm = await generateNum();
+                function generateNum(){
+                     val = Math.floor(10000 + Math.random() * 90000);
+                
+                status="check";
+                var NETCCN = "NETCCN";
+                MRN = NETCCN+val;
+                console.log(MRN)
+                var query = "profile.MRN eq ";
+               searchquery = query +"\""+ MRN +"\""
+               //searchquery = query +"\""+"NETCCN33620"+"\""
+                }
+                console.log(searchquery);
+                var usr = await listusers();
+                //var searchquery = query +"\""+"NETCCN00001"+"\""
+                async function listusers(){
+                    console.log("enters function block")
+                    await client.listUsers({
+                        search: searchquery
+                      })
+                      .each(user =>{
+                          status="new";
+                         console.log(status)
+                        console.log(user['id'])
+                        generateNum();
+                       // searchquery='profile.MRN eq "NETCCN54565"'
+                        listusers();      
+                      })
+                         
+                     // .then(test=>{console.log(status);
+                     
+                         
+                      
+                   // });
+                }  
+                console.log(status);
+                        if(status=="check"){
+                            //res.send(MRN)
+                            console.log('MRN GENERATED') 
+                            console.log(MRN)
+                            console.log("return statement")
+                            return(MRN)
+                          }
+                          else{
+                              console.log("false")
+                             //return('MRN not generated')
+                          }
+                
+                //console.log(status);
+                
+        }
+
 
 module.exports = oktapost;
